@@ -1,5 +1,5 @@
 $BotCount = 12
-# The bots will be generated this base name as the first part with the number appended.
+# The bots will be generated with this base name as the first part with the number appended.
 $BotBaseName = "ZeroBot"
 $BotPassword = "local"
 # The bot ship can be any value from 1 to 8 for standard ships.
@@ -16,19 +16,19 @@ $ConfFilename = "chaos.conf"
 $BotBehaviorServer = "Subgame"
 $BotBehavior = "terrier"
 
-# Set this to $false if you want to run a server manually (must be 127.0.01:5000).
+# Set this to $false if you want to run a server manually (must be 127.0.0.1:5000).
 $RunServer = $true
 
 # This delay gives time for the server to startup before running the bots.
 $StartupDelay = 3
 
-$ServerPath = "./SubspaceServer-2.0.0-win-x64"
-$ServerUrl = "https://github.com/gigamon-dev/SubspaceServer/releases/download/v2.0.0/SubspaceServer-2.0.0-win-x64.zip"
-$PristineServerHash = "E0E4237B51F2C58ECBCA9551C80705AE10796E8FEC558294851DFDA7B6CDD109"
+$ServerPath = "./SubspaceServer-3.0.0-win-x64"
+$ServerUrl = "https://github.com/gigamon-dev/SubspaceServer/releases/download/v3.0.0/SubspaceServer-3.0.0-win-x64.zip"
+$PristineServerHash = "7CE688FF50ECBDF9FFB5C4414F180D4AB60A88454F9507802ECBAB65EC10492F"
 
-$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.3/zero-0.3.zip"
-$BotPath = "./zero-0.3"
-$PristineBotHash = "612B454C0831D613488D02B66620703B2A26BD7E98B4063C3F65684129093A0B"
+$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.4/zero-0.4.zip"
+$BotPath = "./zero-0.4"
+$PristineBotHash = "C89544B7CBAD208C6D6F55D95FD29DA85C76C52B76672F37940953858EF8C693"
 
 ##############################################
 
@@ -46,6 +46,7 @@ $ServerCurrentMapPath = "$($ServerPath)/maps/_current.lvl"
 
 $ServerConfPath = "$($ServerPath)/conf/game.conf"
 $ArenaConfPath = "$($ServerPath)/arenas/(default)/arena.conf"
+$ServerGlobalConfPath = "$($ServerPath)/conf/global.conf"
 
 if (-not (Test-Path -Path $ServerPath)) {
 	$DownloadServer = $true
@@ -60,6 +61,7 @@ if (-not (Test-Path -Path $ServerPath)) {
 	}
 	
 	Expand-Archive server.zip -DestinationPath .
+	Rename-Item -Path "./win-x64" -NewName $ServerPath
 	
 	"" >> $ArenaConfPath
 	"#include conf/game.conf" >> $ArenaConfPath
@@ -67,6 +69,15 @@ if (-not (Test-Path -Path $ServerPath)) {
 	"" >> $ArenaConfPath
 	"[General]" >> $ArenaConfPath
 	"DesiredPlaying = 1024" >> $ArenaConfPath
+	"MaxPlaying = 1024" >> $ArenaConfPath
+	
+	# Reduce logging because terminals can be very slow to write with many bots.
+	"" >> $ServerGlobalConfPath
+	"[log_console]" >> $ServerGlobalConfPath
+	"all = MWE" >> $ServerGlobalConfPath
+	"" >> $ServerGlobalConfPath
+	"[log_file]" >> $ServerGlobalConfPath
+	"all = MWE" >> $ServerGlobalConfPath
 }
 
 if (-not (Test-Path -Path $BotPath)) {
@@ -167,6 +178,7 @@ for ($i = 1; $i -le $BotCount; $i++) {
 if ($RunServer) {
 	# Begin running the server.
 	Start-Process -FilePath powershell.exe "$($ServerPath)/run-server.ps1"
+	#Start-Process -WorkingDirectory "./asss" -FilePath "./asss/asss.bat"
 	# Delay long enough for the server to startup.
 	powershell.exe "$($Env:windir)/system32/timeout.exe /t $($StartupDelay) /nobreak"
 }
