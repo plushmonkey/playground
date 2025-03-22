@@ -6,6 +6,13 @@ $BotPassword = "local"
 # Set this value to 0 to have it be randomized for each generated bot.
 $BotShip = 0
 
+# This is a hash table mapping player names to bot operator levels.
+# Higher values will give more control over the bot.
+$BotOperators = @{
+	'monkey' = 10
+	'taz' = 10
+}
+
 $MapFilename = "_bzw.lvl"
 $ConfFilename = "chaos.conf"
 
@@ -26,9 +33,9 @@ $ServerPath = "./SubspaceServer-3.0.0-win-x64"
 $ServerUrl = "https://github.com/gigamon-dev/SubspaceServer/releases/download/v3.0.0/SubspaceServer-3.0.0-win-x64.zip"
 $PristineServerHash = "7CE688FF50ECBDF9FFB5C4414F180D4AB60A88454F9507802ECBAB65EC10492F"
 
-$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.4/zero-0.4.zip"
-$BotPath = "./zero-0.4"
-$PristineBotHash = "C89544B7CBAD208C6D6F55D95FD29DA85C76C52B76672F37940953858EF8C693"
+$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.5/zero-0.5.zip"
+$BotPath = "./zero-0.5"
+$PristineBotHash = "C5757D8219F467A05E616EBD7D0B331C8B4716B2E5335762CEA9AD3B7CE124D8"
 
 ##############################################
 
@@ -173,6 +180,12 @@ for ($i = 1; $i -le $BotCount; $i++) {
 	""  >> $ConfigPath
 	"[Servers]" >> $ConfigPath
 	"$($BotBehaviorServer) = 127.0.0.1:5000" >> $ConfigPath
+	""  >> $ConfigPath
+	"[Operators]"  >> $ConfigPath
+	foreach ($Operator in $BotOperators.Keys) {
+		$OperatorLevel = $BotOperators[$Operator]
+		"$($Operator) = $($OperatorLevel)"  >> $ConfigPath	
+	}
 }
 
 if ($RunServer) {
