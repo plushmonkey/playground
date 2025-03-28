@@ -1,10 +1,10 @@
-$BotCount = 12
+$TeamSpiderCount = 5
+$TeamSharkCount = 2
+$TeamTerrierCount = 1
+
 # The bots will be generated with this base name as the first part with the number appended.
-$BotBaseName = "ZeroBot"
+$BotBaseName = "Zero"
 $BotPassword = "local"
-# The bot ship can be any value from 1 to 8 for standard ships.
-# Set this value to 0 to have it be randomized for each generated bot.
-$BotShip = 0
 
 # This is a hash table mapping player names to bot operator levels.
 # Higher values will give more control over the bot.
@@ -13,16 +13,11 @@ $BotOperators = @{
 	'taz' = 10
 }
 
-$MapFilename = "_bzw.lvl"
-$ConfFilename = "chaos.conf"
+$MapFilename = "trench.lvl"
+$ConfFilename = "tw.conf"
 
-# This is the defined server for the generated bots.
-# Local, Subgame, Hyperspace, Devastation, MetalGear, ExtremeGames
-# It will always point to 127.0.0.1, but zero is setup so each server name has a different set of behaviors.
-# It's probably fine to keep it as Subgame with terrier as the behavior for most configs.
-$BotBehaviorServer = "Subgame"
-$BotBehavior = "terrier"
-$BotArena = ""
+# This is the level file to download from the tw download site.
+$DownloadMapName = "trench.lvl"
 
 # Set this to $false if you want to run a server manually (must be 127.0.0.1:5000).
 $RunServer = $true
@@ -48,12 +43,12 @@ if ($RunServer) {
 }
 
 $ServerMapPath = "$($ServerPath)/maps/$($MapFilename)"
-$BotMapPath = "$($BotPath)/zones/subgame/$($MapFilename)"
+$BotMapPath = "$($BotPath)/zones/SSCU Trench Wars/$($MapFilename)"
 
-$ServerCurrentMapPath = "$($ServerPath)/maps/_current.lvl"
+$ServerCurrentMapPath = "$($ServerPath)/maps/_current_tw.lvl"
 
-$ServerConfPath = "$($ServerPath)/conf/game.conf"
-$ArenaConfPath = "$($ServerPath)/arenas/(default)/arena.conf"
+$ServerConfPath = "$($ServerPath)/conf/tw.conf"
+$ArenaConfPath = "$($ServerPath)/arenas/tw/arena.conf"
 $ServerGlobalConfPath = "$($ServerPath)/conf/global.conf"
 
 if (-not (Test-Path -Path $ServerPath)) {
@@ -70,15 +65,17 @@ if (-not (Test-Path -Path $ServerPath)) {
 	
 	Expand-Archive server.zip -DestinationPath .
 	Rename-Item -Path "./win-x64" -NewName $ServerPath
+  
+  # Setup default arena because this was ran before the play script.
+  $DefaultArenaConfPath = "$($ServerPath)/arenas/(default)/arena.conf"
+  "" >> $DefaultArenaConfPath
+	"#include conf/game.conf" >> $DefaultArenaConfPath
 	
-	"" >> $ArenaConfPath
-	"#include conf/game.conf" >> $ArenaConfPath
-	
-	"" >> $ArenaConfPath
-	"[General]" >> $ArenaConfPath
-	"DesiredPlaying = 1024" >> $ArenaConfPath
-	"MaxPlaying = 1024" >> $ArenaConfPath
-	
+	"" >> $DefaultArenaConfPath
+	"[General]" >> $DefaultArenaConfPath
+	"DesiredPlaying = 1024" >> $DefaultArenaConfPath
+	"MaxPlaying = 1024" >> $DefaultArenaConfPath
+  
 	# Reduce logging because terminals can be very slow to write with many bots.
 	"" >> $ServerGlobalConfPath
 	"[log_console]" >> $ServerGlobalConfPath
@@ -86,6 +83,23 @@ if (-not (Test-Path -Path $ServerPath)) {
 	"" >> $ServerGlobalConfPath
 	"[log_file]" >> $ServerGlobalConfPath
 	"all = MWE" >> $ServerGlobalConfPath
+}
+
+if (-not (Test-Path -Path "$($ServerPath)/arenas/tw")) {
+  # Copy the turf arena to the tw arena to act as a base.
+  Copy-Item -Recurse -Path "$($ServerPath)/arenas/turf" -Destination "$($ServerPath)/arenas/tw"
+
+  "" >> $ArenaConfPath
+  "#include conf/tw.conf" >> $ArenaConfPath
+
+  "" >> $ArenaConfPath
+  "[General]" >> $ArenaConfPath
+  "DesiredPlaying = 1024" >> $ArenaConfPath
+  "MaxPlaying = 1024" >> $ArenaConfPath
+  
+  "" >> $ArenaConfPath
+	"[General]" >> $ArenaConfPath
+	"Map = $($MapFilename)" >> $ArenaConfPath
 }
 
 if (-not (Test-Path -Path $BotPath)) {
@@ -101,6 +115,10 @@ if (-not (Test-Path -Path $BotPath)) {
 	}
 	
 	Expand-Archive zero.zip -DestinationPath .
+}
+
+if (-not (Test-Path -Path "./$($DownloadMapName)")) {
+  wget "https://trenchwars.org/downloads/maps/browse2016/$($DownloadMapName)" -Outfile "$($DownloadMapName)"
 }
 
 if (-not (Test-Path -Path $ServerMapPath)) {
@@ -143,22 +161,23 @@ if (Test-Path -Path $BotRunFile) {
 	Remove-Item -Path $BotRunFile
 }
 
-# Generate the run.bat file and all of the config files for the bots.
-for ($i = 1; $i -le $BotCount; $i++) {
-	$BotName = "$($BotBaseName)$($i)"
-	$CurrentBotShip = $BotShip
-	
-	if (($CurrentBotShip -lt 1) -or ($CurrentBotShip -gt 8)) {
-		$CurrentBotShip = Get-Random -Minimum 1 -Maximum 9	
-	}
+function Generate-Bot-Type {
+  param (
+    $CurrentBotShip,
+    $NameSuffix,
+    $BehaviorName,
+    $Index
+  )
+  
+  $BotName = "$($BotBaseName)$($NameSuffix)"
 	
 	$ConfigFilename = "$($BotName).cfg"
 	$ConfigPath = "$($BotPath)/$($ConfigFilename)"
 		
 	"start /B ./zero.exe $($ConfigFilename)" >> $BotRunFile
 	
-	if ($i % 10 -eq 0) {
-		$Delay = ($i / 10) + 1
+	if ($Index % 10 -eq 0) {
+		$Delay = ($Index / 10) + 1
 		"%WINDIR%\system32\timeout.exe /t $($Delay) /nobreak" >> $BotRunFile
 	}
 	
@@ -171,25 +190,40 @@ for ($i = 1; $i -le $BotCount; $i++) {
 	"[Login]" >> $ConfigPath
 	"Username = $($BotName)" >> $ConfigPath
 	"Password = $($BotPassword)" >> $ConfigPath
-	"Server = $($BotBehaviorServer)" >> $ConfigPath
+	"Server = TrenchWars" >> $ConfigPath
 	"Encryption = Subspace" >> $ConfigPath
 	"" >> $ConfigPath
 	"[General]" >> $ConfigPath
 	"LogLevel = Error" >> $ConfigPath
 	"RequestShip = $($CurrentBotShip)" >> $ConfigPath
-	"Behavior = $($BotBehavior)" >> $ConfigPath
-	if ($BotArena.Length -gt 0) {
-		"Arena = $($BotArena)" >> $ConfigPath
-	}
+	"Behavior = $($BehaviorName)" >> $ConfigPath
+  "Arena = tw" >> $ConfigPath
 	""  >> $ConfigPath
 	"[Servers]" >> $ConfigPath
-	"$($BotBehaviorServer) = 127.0.0.1:5000" >> $ConfigPath
+	"TrenchWars = 127.0.0.1:5000" >> $ConfigPath
 	""  >> $ConfigPath
 	"[Operators]"  >> $ConfigPath
 	foreach ($Operator in $BotOperators.Keys) {
 		$OperatorLevel = $BotOperators[$Operator]
 		"$($Operator) = $($OperatorLevel)"  >> $ConfigPath	
 	}
+}
+
+# Generate the run.bat file and all of the config files for the bots.
+for ($i = 1; $i -le ($TeamSpiderCount * 2); $i++) {
+  Generate-Bot-Type -CurrentBotShip 3 -NameSuffix "Spider$($i)" -BehaviorName "spider" -Index $i
+}
+
+"%WINDIR%\system32\timeout.exe /t 3 /nobreak" >> $BotRunFile
+
+for ($i = 1; $i -le ($TeamTerrierCount * 2); $i++) {
+  Generate-Bot-Type -CurrentBotShip 5 -NameSuffix "Terrier$($i)" -BehaviorName "terrier" -Index $i
+}
+
+"%WINDIR%\system32\timeout.exe /t 3 /nobreak" >> $BotRunFile
+
+for ($i = 1; $i -le ($TeamSharkCount * 2); $i++) {
+  Generate-Bot-Type -CurrentBotShip 8 -NameSuffix "Shark$($i)" -BehaviorName "shark" -Index $i
 }
 
 if ($RunServer) {

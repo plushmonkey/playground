@@ -11,6 +11,13 @@ This script is for Windows only.
 The server requires the .NET runtime to run the server.  
 You can manually install it from [Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet/9.0/runtime).  
 
+## Trench Wars
+There's a tw script that will setup a server and bots to play a well balanced team composition.  
+Run the `tw.ps1` script and `?go tw` to play it. Make sure the `play.ps1` script is not running.  
+
+There's a bug in the current SubspaceServer where you might need to rejoin the arena after downloading it once to see the flag.  
+There is no module for actually running the flag game, so it's just the base gameplay that works.  
+
 ## Config
 The bot count, name, password, ship, and behavior can be set in the script. The bot config files will be generated every time the script is ran, so it's not actually useful to manually change the zero cfg files.  
 
