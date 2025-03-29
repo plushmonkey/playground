@@ -1,6 +1,7 @@
-$TeamSpiderCount = 5
+$TeamSpiderCount = 6
+$TeamTerrierCount = 2
+$TeamLancCount = 2
 $TeamSharkCount = 2
-$TeamTerrierCount = 1
 
 # The bots will be generated with this base name as the first part with the number appended.
 $BotBaseName = "Zero"
@@ -224,6 +225,12 @@ for ($i = 1; $i -le ($TeamTerrierCount * 2); $i++) {
 
 for ($i = 1; $i -le ($TeamSharkCount * 2); $i++) {
   Generate-Bot-Type -CurrentBotShip 8 -NameSuffix "Shark$($i)" -BehaviorName "shark" -Index $i
+}
+
+"%WINDIR%\system32\timeout.exe /t 3 /nobreak" >> $BotRunFile
+
+for ($i = 1; $i -le ($TeamLancCount * 2); $i++) {
+  Generate-Bot-Type -CurrentBotShip 7 -NameSuffix "Lanc$($i)" -BehaviorName "spider" -Index $i
 }
 
 if ($RunServer) {
