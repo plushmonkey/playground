@@ -30,13 +30,13 @@ $RunServer = $true
 # This delay gives time for the server to startup before running the bots.
 $StartupDelay = 3
 
-$ServerPath = "./SubspaceServer-3.0.0-win-x64"
-$ServerUrl = "https://github.com/gigamon-dev/SubspaceServer/releases/download/v3.0.0/SubspaceServer-3.0.0-win-x64.zip"
-$PristineServerHash = "7CE688FF50ECBDF9FFB5C4414F180D4AB60A88454F9507802ECBAB65EC10492F"
+$ServerPath = "./SubspaceServer-4.0.0-win-x64"
+$ServerUrl = "https://github.com/gigamon-dev/SubspaceServer/releases/download/v4.0.0/SubspaceServer-4.0.0-win-x64.zip"
+$PristineServerHash = "60B25B69E15BCA75D6CC5218FC344B2D96F86365A01172A626B4C6447D6C0EEA"
 
-$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.6/zero-0.6.zip"
-$BotPath = "./zero-0.6"
-$PristineBotHash = "43E67C08D09097873FBFDFD4F207EBCC16425A956A20320596A9F89332590CFA"
+$BotUrl = "https://github.com/plushmonkey/zero/releases/download/v0.7/zero-0.7.zip"
+$BotPath = "./zero-0.7"
+$PristineBotHash = "7C9E78CA467192772C970079FBBA53F1F23A845C78E1D842316429439C3A3EBF"
 
 ##############################################
 
